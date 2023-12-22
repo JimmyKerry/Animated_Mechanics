@@ -34,13 +34,31 @@ global dottheta0
 global w
 global g
 
+default_flag = bool(int(input('\n-- (1) -- Use default values for the initial conditions of the system\n\tor\n-- (0) -- Manually set initial conditions \n\t(1 or 0): ')))
 
-m = float(input('Mass of the particle moving inside the ring (kg): '))             #mass 
-R = float(input('Radius of the sphere (m): '))                                     #radius of the ring
-theta0 = float(input('Initial angle theta (radians): \u03C0·'))*np.pi                    #initial angle theta
-dottheta0 = float(input('Initial velocity in theta (radians/s): \u03C0·'))*np.pi       #initial angle speed dottheta
-w = float(input('Frequency of rotation around the z axis (radians/s): \u03C0·'))*np.pi   #initial frequency around the z axis w
-g = float(input('Gravitational Field Strength (kgm/s^2): '))
+if default_flag==True:
+    m = 1
+    R = 1.5
+    theta0 = 0.65*np.pi
+    dottheta0 = 0*np.pi
+    w = 0.35*np.pi
+    g = 9.81
+    print('\n----- Initial Conditions of the System (Defaults) -----')
+    print('\n\tMass of the particle moving inside the ring (kg):', m)
+    print('\tRadius of the sphere (m):', R)
+    print('\tInitial angle theta (radians): \u03C0·', theta0)
+    print('\tInitial velocity in theta (radians/s): \u03C0·', dottheta0)
+    print('\tFrequency of rotation around the z axis (radians/s): \u03C0·', w)
+    print('\tGravitational Field Strength (kgm/s^2): ', g)
+else:
+    print('\n----- Initial Conditions of the System (Manual Settings) -----')
+    m = float(input('\n\tMass of the particle moving inside the ring (kg): '))             #mass 
+    R = float(input('\tRadius of the sphere (m): '))                                     #radius of the ring
+    theta0 = float(input('\tInitial angle theta (radians): \u03C0·'))*np.pi                    #initial angle theta
+    dottheta0 = float(input('\tInitial velocity in theta (radians/s): \u03C0·'))*np.pi       #initial angle speed dottheta
+    w = float(input('\tFrequency of rotation around the z axis (radians/s): \u03C0·'))*np.pi   #initial frequency around the z axis w
+    g = float(input('\tGravitational Field Strength (kgm/s^2): '))
+
 
 #Kinetic and Potential Energies, L function
 def T(theta, dottheta):
