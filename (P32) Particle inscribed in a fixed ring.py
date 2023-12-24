@@ -60,15 +60,6 @@ else:
     g = float(input('\tGravitational Field Strength (kgm/s^2): '))
 
 
-#Kinetic and Potential Energies, L function
-def T(theta, dottheta):
-    return 0.5*m*R**2*(dottheta**2 + w**2*(np.sin(theta))**2)
-
-def V(theta):
-    return m*g*R*np.cos(theta)
-
-def L(theta,dottheta):
-    return T(theta,dottheta) - V(theta)
 
 
 #Euler-Lagrange Equations:
@@ -77,7 +68,8 @@ def EulerLagrange(y,t):
     dydt = [x, w**2*np.sin(theta)*np.cos(theta) + g/R*np.sin(theta)]
     return dydt
 
-t = np.linspace(0,100,nsteps)
+tmax = 100
+t = np.linspace(0,tmax,nsteps)
 
 sol = odeint(EulerLagrange, [theta0, dottheta0], t)   #solution for theta,dottheta
 
@@ -94,7 +86,7 @@ z[:] = R*np.cos(sol[:,0])
 
 #Function that creates the ring
 def ring(time):
-    n = 200
+    n = 150
     thetas = np.linspace(0,2*np.pi,n)
     
     coords = np.ones((n,3))
@@ -104,30 +96,119 @@ def ring(time):
 
     return coords
 
+def flatring(time):
+    anglephi = w*time
+    flatcoords = np.ones((2,2))
+    flatcoords[0,0] = R*np.cos(anglephi)
+    flatcoords[0,1] = R*np.sin(anglephi)
+    flatcoords[1,0] = -R*np.cos(anglephi)
+    flatcoords[1,1] = -R*np.sin(anglephi)
+    return flatcoords
 
+
+#Kinetic and Potential Energies, L function
+def Tfun(theta, dottheta):
+    return 0.5*m*R**2*(dottheta**2 + w**2*(np.sin(theta))**2)
+
+def Vfun(theta):
+    return m*g*R*np.cos(theta)
+
+def Lfun(theta,dottheta):
+    return Tfun(theta,dottheta) - Vfun(theta)
+
+T = np.ones((len(t)))
+V = np.ones((len(t)))
+L = np.ones((len(t)))
+T[:] = Tfun(sol[:,0], sol[:,1])
+V[:] = Vfun(sol[:,0])
+L[:] = Lfun(sol[:,0], sol[:,1])
+maxL = max(L)                               #maximum value found in the T,V and L arrays. Since V can be negative, the maximum value of L (T-V) will be bigger than the maximum values of T and V individually, so we dont need to compute all 3 
+
+
+
+#h function and Energy
+def Efun(theta, dottheta):
+    return Tfun(theta,dottheta) + Vfun(theta)
+
+def hfun(theta, dottheta):
+    return Efun(theta,dottheta) - m*R**2*w**2*(np.sin(theta))**2
+
+E = np.ones((len(t)))
+h = np.ones((len(t)))
+E[:] = Efun(sol[:,0], sol[:,1])
+h[:] = hfun(sol[:,0], sol[:,1])
+maxE = max(E)
+minh = min(h)
 
 
 #Plotting in Crtesian Coordinates
-fig = plt.figure(figsize=(8,8))
-ejes = fig.add_subplot(projection='3d')
+fig = plt.figure(figsize=(14,10))
+ejes = fig.add_subplot(222, projection='3d')      #3D movement
+ejes2 = fig.add_subplot(224)                      #2D movement
+ejes3 = fig.add_subplot(221)                      #T, V, L
+ejes4 = fig.add_subplot(223)                      #E, h
 
-ejes.scatter(x[0],y[0],z[0],marker='o')
+ejes.scatter(x[0],y[0],z[0],marker='o')           #3D movement
+ejes2.plot(x[0], y[0], 'ro')                      #2D movement
 
+ejes3.plot(t[0], T[0])                            #evolutions of T, V and L
+ejes3.plot(t[0], V[0])
+ejes3.plot(t[0], L[0])
+ejes3.set_xlim(0,t[-1])
+ejes3.set_ylim(-1.1*maxL, 1.1*maxL)
+
+ejes4.plot(t[0], E[0])                            #evolutions of E and h
+ejes4.plot(t[0], h[0])
+ejes4.set_xlim(0,t[-1])
+ejes4.set_ylim(-1.1*maxE, 1.1*maxE)
 
 #Animating the trajectory in 3D for every time in the t array
 for step in range(1,nsteps):
     ejes.cla()
+    ejes2.cla()
+    ejes3.cla()
+    ejes4.cla()
     
-    ejes.scatter(x[step],y[step],z[step],marker='o',c='r')  #plotting position for time t[step]
-    
+    #ejes1
+    ejes.scatter(x[step],y[step],z[step],marker='o',c='r', linewidths = 4)  #plotting position for time t[step]
     ringcoords = ring(t[step])
-    ejes.scatter(ringcoords[:,0], ringcoords[:,1], ringcoords[:,2],marker='2')
+    ejes.scatter(ringcoords[:,0], ringcoords[:,1], ringcoords[:,2],marker='_',c='b')
     
+    #ejes2
+    ejes2.plot(x[step], y[step], 'ro', markersize = 11)
+    ejes2.plot(0,0,'kP')
+    flatringcoords = flatring(t[step])
+    ejes2.plot(flatringcoords[:,0],flatringcoords[:,1],'bo',linestyle =':',linewidth=2)
+    
+    #ejes3
+    ejes3.plot(t[step], L[step], 'bo', label='L')
+    ejes3.plot(t[step], T[step], 'mo', label='T')
+    ejes3.plot(t[step], V[step], 'go', label='V')
+    ejes3.plot(t[:],T[:], 'm')
+    ejes3.plot(t[:],V[:], 'g')
+    ejes3.plot(t[:],L[:], 'b')
+    ejes3.legend()
+    
+    #ejes4
+    ejes4.plot(t[step], E[step], 'yo', label='Energy')
+    ejes4.plot(t[step], h[step], 'o', color='purple', label='h function')
+    ejes4.plot(t[:], E[:], 'y')
+    ejes4.plot(t[:], h[:], 'purple')
+    ejes4.legend()
+    
+    #axis limits for every graph
     ejes.set_xlim(-1.2*R,1.2*R)
     ejes.set_ylim(-1.2*R,1.2*R)
     ejes.set_zlim(-1.2*R,1.2*R)
     
+    ejes2.set_xlim(-1.2*R,1.2*R)
+    ejes2.set_ylim(-1.2*R,1.2*R)
     
+    ejes3.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
+    ejes3.set_ylim(-1.0*maxL, 1.1*maxL)
+    
+    ejes4.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
+    ejes4.set_ylim(1.1*minh, max(1.1*min(E),0.9*max(E)))
     
     
     plt.pause(tp)
