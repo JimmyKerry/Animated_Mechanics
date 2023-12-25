@@ -149,6 +149,7 @@ ejes3 = fig.add_subplot(221)                      #T, V, L
 ejes4 = fig.add_subplot(223)                      #E, h
 
 ejes.scatter(x[0],y[0],z[0],marker='o')           #3D movement
+
 ejes2.plot(x[0], y[0], 'ro')                      #2D movement
 
 ejes3.plot(t[0], T[0])                            #evolutions of T, V and L
@@ -200,16 +201,25 @@ for step in range(1,nsteps):
     ejes.set_xlim(-1.2*R,1.2*R)
     ejes.set_ylim(-1.2*R,1.2*R)
     ejes.set_zlim(-1.2*R,1.2*R)
+    ejes.set_xlabel('m')
+    ejes.set_ylabel('m')
+    ejes.set_zlabel('m')
+
     
     ejes2.set_xlim(-1.2*R,1.2*R)
     ejes2.set_ylim(-1.2*R,1.2*R)
+    ejes2.set_xlabel('m')
+    ejes2.set_ylabel('m')
     
     ejes3.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
     ejes3.set_ylim(-1.0*maxL, 1.1*maxL)
+    ejes3.set_xlabel('Time (s)')
+    ejes3.set_ylabel('Energy (J)')
     
     ejes4.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
     ejes4.set_ylim(1.1*minh, max(1.1*min(E),0.9*max(E)))
-    
+    ejes4.set_xlabel('Time (s)')
+    ejes4.set_ylabel('Energy (J)')
     
     plt.pause(tp)
     
