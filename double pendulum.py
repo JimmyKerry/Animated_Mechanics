@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 20 16:03:42 2024
+Trajectory finder for a system of coupled oscillators
 
-@author: 34648
+Let a spring hang from a ceiling on one end and be attached to a small particle of mass m on the other. Let another equal spring be attached to this mass, with another particle of mass m hanging from the lower end of it.
+This program resolves the movement of the system by considering it a system of 2 coupled oscillators.
 """
 
 import numpy as np 
@@ -34,7 +35,7 @@ default_flag = bool(int(input('\n-- (1) -- Use default values for the initial co
 if default_flag==True:
     m = 0.5
     l = 0.5
-    k = 1.25
+    k = 2.25
     phi1 = 0
     phi2 = 0
     c1 = 1/np.sqrt(2)
@@ -46,17 +47,18 @@ if default_flag==True:
     print('\tHooke constant for both springs (N/m):', k)
     print('\tInitial offset angle for spring 1 (radians): \u03C0·', phi1)
     print('\tInitial offset angle for spring 2 (radians): \u03C0·', phi2)
-    print('\tIntensity coefficient for the first oscillator (eta_i == c1*eta_i1 + c2*eta_i2):', c1)
-    print('\tIntensity coefficient for the second oscillator (eta_i == c1*eta_i1 + c2*eta_i2):', c2)
+    print('\tIntensity coefficient for the first oscillating mode (eta_i == c1*eta_i1 + c2*eta_i2):', c1)
+    print('\tIntensity coefficient for the second oscillating mode (eta_i == c1*eta_i1 + c2*eta_i2):', c2)
     print('\tGravitational Field Strength (kgm/s^2): ', g)
 else:
     print('\n----- Initial Conditions of the System (Manual Settings) -----')
     m = float(input('\n\tMass of the particles hanging from the springs (kg): '))             
-    l = float(input('\tLength of the pendulums (m): '))                                     
-    phi1 = float(input('\tInitial offset angle for spring 2 (radians): \u03C0·'))*np.pi                 
+    l = float(input('\tLength of the pendulums (m): '))                        
+    k = float(input('\tHooke constant for both springs (N/m): '))             
+    phi1 = float(input('\tInitial offset angle for spring 1 (radians): \u03C0·'))*np.pi                 
     phi2 = float(input('\tInitial offset angle for spring 2 (radians): \u03C0·'))*np.pi     
-    c1 = float(input('\tIntensity coefficient for the first oscillator c1 (eta_i == c1*eta_i1 + c2*eta_i2):'))
-    c2 = float(input('\tIntensity coefficient for the second oscillator (eta_i == c1*eta_i1 + c2*eta_i2):'))
+    c1 = float(input('\tIntensity coefficient for the first oscillating mode c1 (eta_i == c1*eta_i1 + c2*eta_i2):'))
+    c2 = float(input('\tIntensity coefficient for the second oscillating mode (eta_i == c1*eta_i1 + c2*eta_i2):'))
     g = float(input('\tGravitational Field Strength (kgm/s^2): '))
 
 #checking if the coefficients c1 c2 are normalized
@@ -117,29 +119,34 @@ eta2 = c1*(1-np.sqrt(5))/2*a1*np.sin(w1*t+phi1) + c2*(1+np.sqrt(5))/2*a2*np.sin(
 
 
 
-#coordinates of the oscillating masses
+#coordinates of the oscillating masses and of the center of mass
 x1 = computex1(eta1)                     
 x2 = computex2(eta2) 
+xCOM = (x1+x2) / 2
 
 #check if the masses will collide
-if max(x1)>min(x2):
-    collide_flag = True
-    print('\n\t---------------------------------------\n \
+collide_flag=False
+for i in range(len(x1)):
+    if x1[i]>x2[i]:
+        collide_flag=True
+        print('\n\t---------------------------------------\n \
 \tWARNING! With these parameters the masses will collide!\n\tThis program does not model collisions, only the behavior of the system as a coupled oscillator \
 \n\t---------------------------------------\n')
-else:
-    collide_flag=False
-
+        break
 
 
 #Animation
     #The animation is donde via a loop where each iteration generates one frame of the animation
 
 #setting up the plots
-fig = plt.figure(figsize=(6,8))
-ejes1 = fig.add_subplot(111)
+fig = plt.figure(figsize=(12,8))
+ejes1 = fig.add_subplot(121)           #The animated movement
+ejes2 = fig.add_subplot(122)           #x1 and x2 over time
+
 ejes1.set_xlim(-2,2)
 ejes1.set_ylim(-1.1*max(x2),0)
+
+ejes2.set_xlim(t[0]-tmax/15,t[0]+tmax/10)
 fig.show()
 
 
@@ -148,30 +155,42 @@ step = 0
 while step < nsteps:
     
     ejes1.cla()
+    ejes2.cla()
     
-    #animated pendulum
-    
+    #ejes1 (animated pendulum)
     
     ejes1.plot(0, -x1[step], 'ro', markersize=10, label='$m_1$')                #top mass
     ejes1.plot(0, -x2[step], 'go', markersize=10, label='$m_2$')                #bottom mass
-    #ejes1.plot([0,0], [0,-x2[step]], 'g:', linewidth=2)                         #bottom spring
-    #ejes1.plot([0,0], [0,-x1[step]], 'r:', linewidth=2)                        #top spring (has to be plotted after the bottom spring or else it will be obscured by it)
     ejes1.plot(np.zeros(shape=20), np.linspace(0,-x1[step],20), 'r.')           #top spring
     ejes1.plot(np.zeros(shape=20), np.linspace(-x1[step],-x2[step],20), 'g.')   #bottom spring
-    ejes1.plot([-1e4,1e4],[0,0], 'k-', linewidth = 10)
+    ejes1.plot([-1e4,1e4],[0,0], 'k-', linewidth = 20)                          #ceiling
     ejes1.text(-1.8,-max(x2),'t = '+str("%.2f"%t[step])+' s', fontsize=18)
     if collide_flag==True:
         ejes1.text(0.5,-max(x2),'Masses will collide! \n(see terminal)', fontsize=12)
     
     ejes1.set_xlim(-2,2)
     ejes1.set_ylim(-1.1*max(x2),0)    
-    
-
+    ejes1.set_ylabel('Height (m)', fontsize=16)
+    frame1 = fig.gca()
+    for xlabel_i in frame1.axes.get_xticklabels():
+        xlabel_i.set_visible(False)
     ejes1.legend()
+    
+    
+    #ejes2 (x(t) and y(t))
+    
+    ejes2.plot(t, -x1, 'r-', linewidth=2)                                                                               #curva x1(t)
+    ejes2.plot(t, -x2, 'g-', linewidth=2)                                                                               #curva x2(t)
+    ejes2.plot(t, -xCOM, 'purple', linestyle='-', linewidth=2)                                                          #curva xCOM(t)  (XCOM == posicion del centro de masas)
+    ejes2.plot(t[step], -x1[step], 'ro', label='x1', markersize=10)                                                     #marcador de x1
+    ejes2.plot(t[step], -x2[step], 'go', label='x2', markersize=10)                                                     #marcador de x2
+    ejes2.plot(t[step], -xCOM[step], 'o', mec='purple', mfc='purple', markersize=10, label='x of the Center of Mass')   #marcador de xCOM
+    
+    ejes2.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
+    ejes2.set_ylim(-1.5*max(max(x1),max(x2)) , 0 )
+    ejes2.legend()
+    
     plt.pause(tp)
-    
-    
-    
     step += 1
 
 
