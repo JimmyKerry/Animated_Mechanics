@@ -179,6 +179,7 @@ while step < nsteps:
     ejes1.plot(x2[step], r, 'go', markersize=18)                                         #second 
     ejes1.plot(x3[step], r, 'bo', markersize=18)                                         #third
     
+    ejes1.set_title('Simulated movement', fontsize=20)
     ejes1.set_rmax(1.5*r)
     
     
@@ -191,7 +192,7 @@ while step < nsteps:
     ejes2.plot(t[step], x2[step], 'go', label='x2', markersize=10)             #marcador de x2
     ejes2.plot(t[step], x3[step], 'bo', markersize=10, label='x3')             #marcador de x3
               
-
+    ejes2.set_title('Angles over time', fontsize=20)
     ejes2.set_ylim(-2*np.pi,2*np.pi)
     ejes2.set_xlim(t[step]-tmax/15,t[step]+tmax/10)
     ejes2.set_xlabel('Time (s)', fontsize=16)
